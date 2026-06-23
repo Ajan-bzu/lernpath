@@ -1,0 +1,10 @@
+{
+  "name": "learnpath",
+  "version": "1.0.0",
+  "description": "LearnPath – KI-gestützte Lernplattform für die Berufsbildung",
+  "type": "module",
+  "private": true,
+  "engines": {
+    "node": ">=18.x"
+  }
+}

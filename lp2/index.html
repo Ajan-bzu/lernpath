@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LearnPath — KI-Lernplattform</title>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.30.0/tabler-icons.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+:root{
+  --navy:#042C53; --navy2:#0C447C; --blue:#185FA5; --bright:#378ADD; --ice:#B5D4F4; --ice2:#E6F1FB;
+  --bg:#F4F6FA; --surface:#FFFFFF; --line:#E3E8F0; --text:#0E1B2E; --muted:#5C6B82; --hint:#92A0B5;
+  --teal:#1D9E75; --amber:#BA7517; --coral:#D85A30;
+  --shadow:0 1px 3px rgba(4,44,83,.06), 0 8px 24px rgba(4,44,83,.05);
+  --radius:14px; --radius-sm:10px; --font-d:'Sora',sans-serif; --font-b:'Inter',sans-serif;
+}
+*{box-sizing:border-box; margin:0; padding:0;}
+body{font-family:var(--font-b); background:var(--bg); color:var(--text); -webkit-font-smoothing:antialiased; overflow:hidden;}
+.app{display:flex; height:100vh;}
+.sidebar{width:240px; background:var(--navy); color:var(--ice); display:flex; flex-direction:column; flex-shrink:0;}
+.brand{padding:22px 20px; display:flex; align-items:center; gap:11px; border-bottom:1px solid rgba(255,255,255,.1); cursor:pointer;}
+.brand .logo{width:34px; height:34px; border-radius:9px; background:var(--bright); display:flex; align-items:center; justify-content:center; color:#fff; font-size:19px;}
+.brand .name{font-family:var(--font-d); font-weight:700; font-size:19px; color:#fff; letter-spacing:-.3px;}
+.nav{padding:14px 12px; display:flex; flex-direction:column; gap:3px; flex:1; overflow:auto;}
+.nav-label{font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#5E7CA8; padding:12px 12px 6px;}
+.link{display:flex; align-items:center; gap:12px; width:100%; text-align:left; background:transparent; border:none; color:var(--ice); font-size:14.5px; font-family:var(--font-b); font-weight:500; padding:11px 13px; border-radius:10px; cursor:pointer; transition:.15s;}
+.link i{font-size:19px; width:20px; text-align:center;}
+.link:hover{background:rgba(255,255,255,.07); color:#fff;}
+.link.active{background:var(--blue); color:#fff;}
+.main{flex:1; min-width:0; display:flex; flex-direction:column;}
+.topbar{padding:15px 28px; background:var(--surface); border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between; gap:16px;}
+.crumb{display:flex; align-items:center; gap:8px; font-size:13px; color:var(--muted); min-width:0;}
+.crumb a{color:var(--blue); cursor:pointer; font-weight:500; white-space:nowrap;}
+.crumb a:hover{text-decoration:underline;}
+.crumb .sep{color:var(--hint);}
+.crumb h1{font-family:var(--font-d); font-size:19px; font-weight:600; color:var(--text); margin:0; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;}
+.content{padding:28px; overflow:auto; flex:1;}
+@keyframes fade{from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:none;}}
+.screen{animation:fade .35s ease; max-width:1000px;}
+.metrics{display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:16px; margin-bottom:24px;}
+.metric{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:18px 20px; box-shadow:var(--shadow);}
+.metric .mi{font-size:20px; color:var(--blue); margin-bottom:10px;}
+.metric .ml{font-size:13px; color:var(--muted); margin-bottom:4px;}
+.metric .mv{font-family:var(--font-d); font-size:27px; font-weight:700; letter-spacing:-.5px;}
+.card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:22px; box-shadow:var(--shadow); margin-bottom:18px;}
+.card h3{font-family:var(--font-d); font-size:16px; font-weight:600; margin-bottom:14px; display:flex; align-items:center; gap:9px;}
+.card h3 i{color:var(--blue);}
+.bar{height:9px; border-radius:6px; background:var(--bg); overflow:hidden;}
+.bar > span{display:block; height:100%; background:linear-gradient(90deg,var(--blue),var(--bright)); border-radius:6px; transition:width .8s cubic-bezier(.4,0,.2,1);}
+.btn{font-family:var(--font-b); font-weight:600; font-size:14px; padding:11px 20px; border-radius:10px; border:none; cursor:pointer; transition:.15s; display:inline-flex; align-items:center; gap:8px;}
+.btn-primary{background:var(--blue); color:#fff;} .btn-primary:hover{background:var(--navy2);}
+.btn-primary:disabled{background:var(--hint); cursor:not-allowed;}
+.btn-ghost{background:var(--bg); color:var(--text); border:1px solid var(--line);} .btn-ghost:hover{border-color:var(--blue); color:var(--blue);}
+.btn-sm{padding:8px 14px; font-size:13px;}
+.btn:active{transform:scale(.98);}
+input[type=text],input[type=password],textarea,select{width:100%; font-family:var(--font-b); font-size:14px; padding:12px 14px; border:1.5px solid var(--line); border-radius:10px; background:var(--surface); color:var(--text); resize:vertical;}
+input:focus,textarea:focus,select:focus{outline:none; border-color:var(--bright);}
+label{font-size:13px; font-weight:600; color:var(--text); display:block; margin-bottom:7px;}
+.field{margin-bottom:16px;}
+.hint{font-size:12.5px; color:var(--muted); margin-top:6px; line-height:1.5;}
+.grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:16px;}
+.tile{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); padding:20px; box-shadow:var(--shadow); cursor:pointer; transition:.18s; position:relative;}
+.tile:hover{transform:translateY(-3px); box-shadow:0 8px 28px rgba(4,44,83,.12);}
+.tile .tic{width:46px; height:46px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:23px; margin-bottom:14px;}
+.tile .tt{font-family:var(--font-d); font-weight:600; font-size:16px; margin-bottom:3px;}
+.tile .ts{font-size:13px; color:var(--muted); margin-bottom:12px;}
+.tile .del{position:absolute; top:14px; right:14px; color:var(--hint); font-size:17px; opacity:0; transition:.15s;}
+.tile:hover .del{opacity:1;} .tile .del:hover{color:var(--coral);}
+.add-tile{border:2px dashed var(--line); background:transparent; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; color:var(--hint); cursor:pointer; min-height:150px; transition:.18s;}
+.add-tile:hover{border-color:var(--blue); color:var(--blue);} .add-tile i{font-size:30px;}
+.topic{display:flex; align-items:center; gap:14px; padding:15px 18px; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); margin-bottom:12px; cursor:pointer; transition:.15s; position:relative;}
+.topic:hover{border-color:var(--bright); box-shadow:var(--shadow);}
+.topic .ti-ic{width:44px; height:44px; border-radius:11px; background:var(--ice2); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:21px; flex-shrink:0;}
+.topic .tn{flex:1; min-width:0;}
+.topic .tnn{font-weight:600; font-size:15px;} .topic .tns{font-size:12.5px; color:var(--muted); margin:2px 0 7px;}
+.topic .tsc{font-family:var(--font-d); font-weight:700; font-size:18px; color:var(--blue); width:56px; text-align:right;}
+.tabs{display:flex; gap:6px; margin-bottom:20px; border-bottom:1px solid var(--line); flex-wrap:wrap;}
+.tab{padding:11px 18px; font-size:14px; font-weight:600; color:var(--muted); cursor:pointer; border:none; background:none; border-bottom:2.5px solid transparent; margin-bottom:-1px; font-family:var(--font-b);}
+.tab:hover{color:var(--blue);} .tab.active{color:var(--blue); border-bottom-color:var(--blue);}
+.opt{display:flex; align-items:center; gap:13px; padding:15px 18px; border:1.5px solid var(--line); border-radius:11px; margin-bottom:11px; cursor:pointer; transition:.15s; font-size:15px;}
+.opt:hover{border-color:var(--bright); background:#F7FAFE;}
+.opt .ol{width:28px; height:28px; border-radius:7px; background:var(--bg); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:13px; color:var(--muted); flex-shrink:0;}
+.opt.correct{border-color:var(--teal); background:#E9F8F2;} .opt.correct .ol{background:var(--teal); color:#fff;}
+.opt.wrong{border-color:var(--coral); background:#FBEDE7;} .opt.wrong .ol{background:var(--coral); color:#fff;}
+.opt.disabled{pointer-events:none;}
+.expl{background:var(--ice2); border-radius:10px; padding:14px 16px; font-size:14px; color:var(--navy); margin:4px 0 16px; line-height:1.55; display:flex; gap:10px;}
+.expl i{color:var(--blue); font-size:18px; flex-shrink:0; margin-top:1px;}
+.qhead{display:flex; align-items:center; gap:12px; margin-bottom:20px;}
+.qhead .bar{flex:1;}
+.qq{font-family:var(--font-d); font-size:19px; font-weight:600; margin-bottom:22px; line-height:1.4;}
+.spinner{width:38px; height:38px; border:3.5px solid var(--ice2); border-top-color:var(--blue); border-radius:50%; animation:spin .8s linear infinite; margin:0 auto;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.loading{text-align:center; padding:50px 20px; color:var(--muted);}
+.empty{text-align:center; padding:40px 24px; color:var(--muted);}
+.empty i{font-size:46px; color:var(--ice); margin-bottom:14px; display:block;}
+.tag{display:inline-flex; align-items:center; gap:5px; font-size:12px; font-weight:600; padding:4px 10px; border-radius:20px; background:var(--ice2); color:var(--blue);}
+.tag.amber{background:#FAEEDA; color:#854F0B;} .tag.green{background:#E1F5EE; color:#0F6E56;} .tag.gray{background:#EEF1F6; color:#5C6B82;}
+.row{display:flex; gap:12px; align-items:center; flex-wrap:wrap;}
+.result{text-align:center; padding:24px;}
+.result .rc{width:80px; height:80px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:42px; margin:0 auto 16px;}
+.result h2{font-family:var(--font-d); font-size:28px; margin-bottom:6px;}
+.examtimer{font-family:var(--font-d); font-weight:700; font-size:16px; color:var(--blue); display:flex; align-items:center; gap:7px;}
+.examtimer.warn{color:var(--coral);}
+.review{border:1px solid var(--line); border-radius:12px; padding:16px 18px; margin-bottom:12px; background:#FCF2EE;}
+.review .rq{font-weight:600; font-size:14.5px; margin-bottom:10px;}
+.review .ra{font-size:13.5px; padding:7px 12px; border-radius:8px; margin-bottom:6px; display:flex; gap:8px; align-items:flex-start;}
+.review .ra.yours-wrong{background:#FBEDE7; color:#8A2D12;}
+.review .ra.correct{background:#E9F8F2; color:#0F6E56;}
+.review .ra i{margin-top:1px; flex-shrink:0;}
+.review .rex{font-size:13px; color:var(--muted); margin-top:8px; line-height:1.5;}
+.file{display:flex; align-items:center; gap:12px; padding:11px 14px; background:var(--bg); border-radius:10px; margin-bottom:8px;}
+.file .fi{width:34px; height:34px; border-radius:8px; background:var(--ice2); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:17px; flex-shrink:0;}
+.file .fn{flex:1; font-size:13.5px; font-weight:500; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;}
+.file .fx{color:var(--hint); cursor:pointer; font-size:16px;} .file .fx:hover{color:var(--coral);}
+.dropzone{border:2px dashed var(--ice); border-radius:12px; padding:26px; text-align:center; color:var(--muted); cursor:pointer; transition:.18s; background:#F7FAFE; margin-bottom:14px;}
+.dropzone.over{border-color:var(--bright); background:#EDF5FE;}
+.dropzone i{font-size:32px; color:var(--bright); margin-bottom:8px; display:block;}
+.theory{font-size:14.5px; line-height:1.7; color:var(--text);}
+.theory h2{font-family:var(--font-d); font-size:18px; margin:20px 0 10px; color:var(--navy);}
+.theory strong{color:var(--navy);} .theory ul{margin:8px 0 8px 22px;} .theory li{margin-bottom:5px;}
+.theory p{margin-bottom:10px;}
+#toast{position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(100px); background:var(--navy); color:#fff; padding:14px 24px; border-radius:12px; font-size:14px; font-weight:500; box-shadow:0 10px 30px rgba(0,0,0,.25); opacity:0; transition:.3s; z-index:99; display:flex; align-items:center; gap:10px; max-width:90%;}
+#toast.show{transform:translateX(-50%) translateY(0); opacity:1;}
+#toast i{font-size:18px;}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="sidebar">
+    <div class="brand" onclick="nav.home()"><div class="logo"><i class="ti ti-route"></i></div><div class="name">LearnPath</div></div>
+    <nav class="nav">
+      <div class="nav-label">Lernen</div>
+      <button class="link active" id="lnk-home" onclick="nav.home()"><i class="ti ti-stack-2"></i>Meine Module</button>
+      <button class="link" id="lnk-progress" onclick="nav.progress()"><i class="ti ti-chart-bar"></i>Fortschritt</button>
+      <button class="link" id="lnk-settings" onclick="nav.settings()"><i class="ti ti-settings"></i>Einstellungen</button>
+    </nav>
+    <div style="padding:12px 18px; border-top:1px solid rgba(255,255,255,.1); display:flex; align-items:center; gap:11px;">
+      <div style="width:34px; height:34px; border-radius:50%; background:var(--blue); display:flex; align-items:center; justify-content:center; color:#fff; font-weight:600; font-size:13px;">BU</div>
+      <div><div style="color:#fff; font-size:14px; font-weight:500;">Buri</div><div style="font-size:12px; color:#85B7EB;">Lernender</div></div>
+    </div>
+  </aside>
+  <main class="main">
+    <div class="topbar"><div class="crumb" id="crumb"></div><div id="topbar-extra"></div></div>
+    <div class="content" id="content"></div>
+  </main>
+</div>
+<div id="toast"><i class="ti ti-circle-check"></i><span id="toast-msg"></span></div>
+
+<script>
+// ================= STATE =================
+const LS='learnpath_v3';
+let state=load();
+function load(){ try{const d=JSON.parse(localStorage.getItem(LS)); if(d&&d.modules) return d;}catch(e){} return {modules:[]}; }
+function save(){ localStorage.setItem(LS, JSON.stringify(state)); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+const C=document.getElementById('content'), CR=document.getElementById('crumb'), EX=document.getElementById('topbar-extra');
+const MODULE_ICONS=[['ti-network','#185FA5','#E6F1FB'],['ti-shield-lock','#0F6E56','#E1F5EE'],['ti-server','#534AB7','#EEEDFE'],['ti-businessplan','#854F0B','#FAEEDA'],['ti-math','#993C1D','#FAECE7'],['ti-cloud','#993556','#FBEAF0'],['ti-code','#0C5460','#E0F3F6'],['ti-book','#7A4F01','#FBF0DC']];
+
+function toast(msg, ok=true){
+  const t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=msg;
+  t.querySelector('i').className='ti '+(ok?'ti-circle-check':'ti-alert-circle');
+  t.querySelector('i').style.color=ok?'#7BE0BC':'#F0A081';
+  t.classList.add('show'); clearTimeout(window._tt); window._tt=setTimeout(()=>t.classList.remove('show'),2800);
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+function mdToHtml(md){
+  let h=esc(md);
+  h=h.replace(/^## (.+)$/gm,'<h2>$1</h2>');
+  h=h.replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>');
+  h=h.replace(/(?:^- .+(?:\n|$))+/gm,m=>'<ul>'+m.trim().split('\n').map(l=>'<li>'+l.replace(/^- /,'')+'</li>').join('')+'</ul>');
+  h=h.split(/\n{2,}/).map(b=>/^\s*<(h2|ul)/.test(b)?b:'<p>'+b.replace(/\n/g,'<br>')+'</p>').join('');
+  return h;
+}
+
+// ================= SCORING =================
+function topicScore(t){ const a=t.attempts&&t.attempts.length?t.attempts[t.attempts.length-1]:null; return a?Math.round(a.correct/a.total*100):0; }
+function moduleScore(m){ const s=m.topics.filter(t=>t.attempts&&t.attempts.length); return s.length?Math.round(s.reduce((a,t)=>a+topicScore(t),0)/s.length):0; }
+function overallScore(){ const all=state.modules.flatMap(m=>m.topics).filter(t=>t.attempts&&t.attempts.length); return all.length?Math.round(all.reduce((a,t)=>a+topicScore(t),0)/all.length):0; }
+function gradeFromPct(p){ return Math.round((p/100*5+1)*10)/10; }
+
+// ================= BACKEND =================
+async function api(path,payload){
+  const res=await fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  const data=await res.json().catch(()=>({error:'Ungültige Antwort vom Server.'}));
+  if(!res.ok) throw new Error(data.error||('HTTP '+res.status));
+  return data;
+}
+
+// ================= NAVIGATION =================
+let view={name:'home'};
+const nav={
+  home(){ view={name:'home'}; render(); },
+  progress(){ view={name:'progress'}; render(); },
+  settings(){ view={name:'settings'}; render(); },
+  module(id){ view={name:'module',moduleId:id}; render(); },
+  topic(mid,tid,tab){ view={name:'topic',moduleId:mid,topicId:tid,tab:tab||'theory'}; render(); },
+};
+function curModule(){ return state.modules.find(m=>m.id===view.moduleId); }
+function curTopic(){ const m=curModule(); return m&&m.topics.find(t=>t.id===view.topicId); }
+
+function setActive(){ ['home','progress','settings'].forEach(n=>{ const el=document.getElementById('lnk-'+n); if(el) el.classList.toggle('active', view.name===n||(n==='home'&&['module','topic'].includes(view.name))); }); }
+function crumb(){
+  let h='';
+  if(view.name==='home') h='<h1>Meine Module</h1>';
+  else if(view.name==='progress') h='<h1>Fortschritt</h1>';
+  else if(view.name==='settings') h='<h1>Einstellungen</h1>';
+  else if(view.name==='module'){ const m=curModule(); h='<a onclick="nav.home()">Module</a><span class="sep">/</span><h1>'+esc(m?m.name:'')+'</h1>'; }
+  else if(view.name==='topic'){ const m=curModule(),t=curTopic(); h='<a onclick="nav.home()">Module</a><span class="sep">/</span><a onclick="nav.module(\''+m.id+'\')">'+esc(m.name)+'</a><span class="sep">/</span><h1>'+esc(t?t.title:'')+'</h1>'; }
+  CR.innerHTML=h;
+}
+
+// ================= RENDER =================
+function render(){
+  stopTimer(); setActive(); crumb(); EX.innerHTML='';
+  ({home:renderHome,progress:renderProgress,settings:renderSettings,module:renderModule,topic:renderTopic}[view.name])();
+}
+
+function renderHome(){
+  const ov=overallScore();
+  let h='<div class="screen"><div class="metrics">'
+    +metric('ti-target-arrow','Gesamt-Wissensstand',ov+' %')
+    +metric('ti-stack-2','Module',state.modules.length)
+    +metric('ti-book-2','Themen',state.modules.reduce((a,m)=>a+m.topics.length,0))
+    +'</div><div class="grid">';
+  state.modules.forEach(m=>{
+    const ic=MODULE_ICONS[m.iconIdx%MODULE_ICONS.length];
+    h+=`<div class="tile" onclick="nav.module('${m.id}')"><i class="ti ti-trash del" onclick="event.stopPropagation();delModule('${m.id}')"></i>
+      <div class="tic" style="background:${ic[2]};color:${ic[1]}"><i class="ti ${ic[0]}"></i></div>
+      <div class="tt">${esc(m.name)}</div><div class="ts">${m.topics.length} Thema/Themen · ${moduleScore(m)}%</div>
+      <div class="bar"><span style="width:${moduleScore(m)}%"></span></div></div>`;
+  });
+  h+=`<div class="tile add-tile" onclick="addModule()"><i class="ti ti-plus"></i><span>Neues Modul / Fach</span></div></div></div>`;
+  C.innerHTML=h;
+}
+
+function renderModule(){
+  const m=curModule(); if(!m){ nav.home(); return; }
+  EX.innerHTML='<button class="btn btn-primary btn-sm" onclick="addTopic()"><i class="ti ti-plus"></i>Neues Thema</button>';
+  let h='<div class="screen">';
+  if(!m.topics.length){
+    h+='<div class="card"><div class="empty"><i class="ti ti-books"></i><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">Noch keine Themen</div>Erstelle ein Thema und füge Material hinzu — die KI baut Theorie, Quiz und Probeprüfung daraus.</div><div style="text-align:center"><button class="btn btn-primary" onclick="addTopic()"><i class="ti ti-plus"></i>Erstes Thema erstellen</button></div></div>';
+  } else {
+    m.topics.forEach(t=>{
+      const ready=t.questions&&t.questions.length;
+      h+=`<div class="topic" onclick="nav.topic('${m.id}','${t.id}')"><div class="ti-ic"><i class="ti ti-book-2"></i></div>
+        <div class="tn"><div class="tnn">${esc(t.title)}</div>
+          <div class="tns">${ready?t.questions.length+' Fragen':'noch nicht generiert'} · ${t.files&&t.files.length?t.files.length+' Datei(en)':'kein Material'}</div>
+          <div class="bar"><span style="width:${topicScore(t)}%"></span></div></div>
+        <div class="tsc">${topicScore(t)}%</div></div>`;
+    });
+  }
+  h+='</div>'; C.innerHTML=h;
+}
+
+function renderTopic(){
+  const m=curModule(), t=curTopic(); if(!t){ nav.module(view.moduleId); return; }
+  const tab=view.tab; EX.innerHTML='';
+  let h='<div class="screen"><div class="tabs">'
+    +tabBtn('theory','Theorie','ti-notes')+tabBtn('quiz','Übungs-Quiz','ti-help-circle')
+    +tabBtn('exam','Probeprüfung','ti-file-certificate')+tabBtn('material','Material','ti-paperclip')
+    +'</div>';
+  if(tab==='material') h+=tabMaterial(m,t);
+  else if(tab==='theory') h+=tabTheory(m,t);
+  else if(tab==='quiz') h+=tabQuizIntro(m,t,false);
+  else if(tab==='exam') h+=tabQuizIntro(m,t,true);
+  h+='</div>'; C.innerHTML=h;
+  if(tab==='material') setupDrop();
+}
+function tabBtn(id,label,icon){ return `<button class="tab ${view.tab===id?'active':''}" onclick="nav.topic('${view.moduleId}','${view.topicId}','${id}')"><i class="ti ${icon}" style="font-size:16px;margin-right:6px;vertical-align:-2px"></i>${label}</button>`; }
+
+function tabMaterial(m,t){
+  let h='<div class="card"><h3><i class="ti ti-paperclip"></i>Lernmaterial</h3><p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:16px;">Füge PDF-Dateien hinzu oder Text ein. Die KI nutzt dieses Material, um Theorie, Quiz und Probeprüfung passgenau zu erstellen.</p>';
+  h+='<div class="dropzone" id="dz" onclick="document.getElementById(\'fin\').click()"><i class="ti ti-cloud-upload"></i><div style="font-size:14px;font-weight:600;color:var(--text)">PDF hierher ziehen oder klicken</div><div style="font-size:12.5px;margin-top:4px">Text wird automatisch ausgelesen</div></div>';
+  h+='<input type="file" id="fin" accept="application/pdf" multiple style="display:none" onchange="handleFiles(event)">';
+  if(t.files&&t.files.length){ h+='<div style="margin-top:6px">'; t.files.forEach((f,i)=>{ h+=`<div class="file"><div class="fi"><i class="ti ti-file-type-pdf"></i></div><div class="fn">${esc(f.name)}</div><span style="font-size:12px;color:var(--muted)">${f.chars} Zeichen</span><i class="ti ti-x fx" onclick="delFile(${i})"></i></div>`; }); h+='</div>'; }
+  h+='<div class="field" style="margin-top:16px"><label>Oder Text direkt einfügen</label><textarea id="mat-text" rows="5" placeholder="Zusammenfassung, Notizen…">'+esc(t.textMaterial||'')+'</textarea></div><button class="btn btn-ghost btn-sm" onclick="saveText()"><i class="ti ti-device-floppy"></i>Text speichern</button></div>';
+  h+='<div class="card"><h3><i class="ti ti-sparkles"></i>Inhalte generieren</h3><p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:16px;">Die KI erstellt Theorie, Übungs-Quiz und Probeprüfung aus deinem Material. Jederzeit neu generierbar.</p>';
+  h+='<div class="row"><div style="flex:1;min-width:130px"><label>Anzahl Fragen</label><select id="g-count"><option>5</option><option selected>8</option><option>10</option><option>15</option></select></div><div style="flex:1;min-width:130px"><label>Schwierigkeit</label><select id="g-diff"><option>einfach</option><option selected>mittel</option><option>schwer (Prüfungsniveau)</option></select></div></div>';
+  h+='<button class="btn btn-primary" style="margin-top:16px" onclick="generateAll()"><i class="ti ti-wand"></i>Theorie, Quiz & Prüfung erstellen</button></div>';
+  return h;
+}
+function tabTheory(m,t){ if(!t.theory) return emptyGen('Noch keine Theorie','Generiere die Inhalte im Tab „Material".'); return '<div class="card"><div class="theory">'+mdToHtml(t.theory)+'</div></div>'; }
+function tabQuizIntro(m,t,exam){
+  if(!t.questions||!t.questions.length) return emptyGen(exam?'Noch keine Probeprüfung':'Noch kein Quiz','Generiere die Inhalte im Tab „Material".');
+  const lastExam=exam&&t.examAttempts&&t.examAttempts.length?t.examAttempts[t.examAttempts.length-1]:null;
+  let h='<div class="card"><h3><i class="ti ti-'+(exam?'file-certificate':'help-circle')+'"></i>'+(exam?'Probeprüfung':'Übungs-Quiz')+'</h3>';
+  h+='<p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:16px;">'+(exam?'Mit Zeitlimit (60 Sek./Frage), ohne Soforthilfe. Am Ende: Note und Fehleranalyse.':'Mit sofortiger Erklärung nach jeder Frage. Ideal zum Üben.')+'</p>';
+  const qn=(exam&&t.examQuestions?t.examQuestions.length:t.questions.length);
+  h+='<div class="row" style="margin-bottom:18px"><span class="tag"><i class="ti ti-list-numbers"></i>'+qn+' Fragen</span>'+(t.difficulty?'<span class="tag gray">'+esc(t.difficulty)+'</span>':'')+(topicScore(t)?'<span class="tag green">Letzter Stand '+topicScore(t)+'%</span>':'')+'</div>';
+  h+='<button class="btn btn-primary" onclick="startQuiz('+exam+')"><i class="ti ti-player-play"></i>'+(exam?'Prüfung starten':'Quiz starten')+'</button>';
+  if(exam&&lastExam) h+='<button class="btn btn-ghost" style="margin-left:10px" onclick="showReview()"><i class="ti ti-list-search"></i>Letzte Fehleranalyse</button>';
+  h+='</div>';
+  return h;
+}
+function emptyGen(title,sub){ return '<div class="card"><div class="empty"><i class="ti ti-sparkles"></i><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:6px;">'+title+'</div>'+sub+'</div><div style="text-align:center"><button class="btn btn-primary" onclick="nav.topic(\''+view.moduleId+'\',\''+view.topicId+'\',\'material\')"><i class="ti ti-paperclip"></i>Zum Material</button></div></div>'; }
+
+function renderProgress(){
+  const ov=overallScore();
+  let h='<div class="screen"><div class="metrics">'
+    +metric('ti-target-arrow','Gesamt-Wissensstand',ov+' %')
+    +metric('ti-stack-2','Module',state.modules.length)
+    +metric('ti-checkbox','Versuche',state.modules.flatMap(m=>m.topics).reduce((a,t)=>a+(t.attempts?t.attempts.length:0),0))
+    +'</div>';
+  if(!state.modules.length) h+='<div class="card"><div class="empty"><i class="ti ti-chart-dots"></i>Noch keine Daten.</div></div>';
+  state.modules.forEach(m=>{
+    h+='<div class="card"><h3><i class="ti ti-folder"></i>'+esc(m.name)+' · '+moduleScore(m)+'%</h3>';
+    if(!m.topics.length) h+='<p style="color:var(--muted);font-size:14px">Keine Themen.</p>';
+    m.topics.forEach(t=>{
+      const isExam=t.examAttempts&&t.examAttempts.length;
+      h+='<div style="margin-bottom:14px"><div style="display:flex;justify-content:space-between;font-size:14px;margin-bottom:7px"><span style="font-weight:600">'+esc(t.title)+'</span><span style="color:var(--muted)">'+topicScore(t)+'%'+(isExam?' · Note '+gradeFromPct(topicScore(t)):'')+'</span></div><div class="bar"><span style="width:0%" data-w="'+topicScore(t)+'"></span></div></div>';
+    });
+    h+='</div>';
+  });
+  h+='</div>'; C.innerHTML=h;
+  setTimeout(()=>document.querySelectorAll('.bar span[data-w]').forEach(el=>el.style.width=el.dataset.w+'%'),60);
+}
+function renderSettings(){
+  C.innerHTML='<div class="screen"><div class="card"><h3><i class="ti ti-plug-connected"></i>KI-Verbindung</h3><p style="color:var(--muted);font-size:14px;line-height:1.65;margin-bottom:16px">Die KI läuft sicher über das Backend dieser App — du musst keinen Key eingeben. Hier kannst du die Verbindung testen.</p><button class="btn btn-ghost" onclick="testBackend()"><i class="ti ti-activity"></i>Verbindung testen</button><div class="hint" id="s-test" style="margin-top:14px"></div></div><div class="card"><h3><i class="ti ti-database"></i>Daten</h3><p style="color:var(--muted);font-size:14px;line-height:1.65;margin-bottom:16px">Alle Module, Themen und Resultate werden im Browser gespeichert und bleiben nach dem Schliessen erhalten.</p><button class="btn btn-ghost" onclick="resetData()"><i class="ti ti-refresh"></i>Alle Daten zurücksetzen</button></div></div>';
+}
+function metric(ic,l,v){return `<div class="metric"><div class="mi"><i class="ti ${ic}"></i></div><div class="ml">${l}</div><div class="mv">${v}</div></div>`;}
+
+// ================= CRUD =================
+function addModule(){ const name=prompt('Name des Moduls / Fachs:'); if(!name||!name.trim()) return; state.modules.push({id:uid(),name:name.trim(),iconIdx:state.modules.length,topics:[]}); save(); renderHome(); toast('Modul erstellt: '+name.trim()); }
+window.addModule=addModule;
+function delModule(id){ if(confirm('Modul und alle Themen darin löschen?')){ state.modules=state.modules.filter(m=>m.id!==id); save(); renderHome(); toast('Modul gelöscht.'); } }
+window.delModule=delModule;
+function addTopic(){ const m=curModule(); const title=prompt('Titel des Themas:'); if(!title||!title.trim()) return; m.topics.push({id:uid(),title:title.trim(),files:[],textMaterial:'',theory:'',questions:[],examQuestions:[],difficulty:'',attempts:[],examAttempts:[]}); save(); renderModule(); toast('Thema erstellt: '+title.trim()); }
+window.addTopic=addTopic;
+
+// ================= MATERIAL =================
+function setupDrop(){
+  const dz=document.getElementById('dz'); if(!dz) return;
+  ['dragenter','dragover'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.add('over');}));
+  ['dragleave','drop'].forEach(e=>dz.addEventListener(e,ev=>{ev.preventDefault();dz.classList.remove('over');}));
+  dz.addEventListener('drop',ev=>{ if(ev.dataTransfer.files.length) handleFiles({target:{files:ev.dataTransfer.files}}); });
+}
+async function handleFiles(e){
+  const t=curTopic(); const files=[...e.target.files];
+  for(const f of files){
+    if(f.type!=='application/pdf'){ toast('Nur PDF unterstützt: '+f.name,false); continue; }
+    try{ toast('Lese '+f.name+'…'); const text=await pdfToText(f); t.files=t.files||[]; t.files.push({name:f.name,text,chars:text.length}); save(); }
+    catch(err){ toast('Fehler bei '+f.name,false); }
+  }
+  renderTopic(); toast('Material hinzugefügt.');
+}
+window.handleFiles=handleFiles;
+async function pdfToText(file){
+  const buf=await file.arrayBuffer(); const pdf=await pdfjsLib.getDocument({data:buf}).promise; let out='';
+  for(let i=1;i<=pdf.numPages;i++){ const page=await pdf.getPage(i); const c=await page.getTextContent(); out+=c.items.map(it=>it.str).join(' ')+'\n'; }
+  return out.trim();
+}
+function delFile(i){ const t=curTopic(); t.files.splice(i,1); save(); renderTopic(); toast('Datei entfernt.'); }
+window.delFile=delFile;
+function saveText(){ const t=curTopic(); t.textMaterial=document.getElementById('mat-text').value; save(); toast('Text gespeichert.'); }
+window.saveText=saveText;
+function gatherMaterial(t){ let parts=[]; if(t.files) parts.push(...t.files.map(f=>f.text)); if(t.textMaterial) parts.push(t.textMaterial); return parts.join('\n\n').slice(0,8000); }
+
+// ================= GENERATE =================
+async function generateAll(){
+  const m=curModule(), t=curTopic();
+  const count=parseInt(document.getElementById('g-count').value), diff=document.getElementById('g-diff').value;
+  const material=gatherMaterial(t);
+  C.innerHTML='<div class="screen"><div class="card"><div class="loading"><div class="spinner"></div><div style="margin-top:16px">Die KI erstellt Theorie, Quiz und Probeprüfung zu „'+esc(t.title)+'"…<br><span style="font-size:13px">Das kann ~20–40 Sek. dauern.</span></div></div></div></div>';
+  try{
+    const [th,quiz,exam]=await Promise.all([
+      api('/api/theory',{topic:t.title,material}),
+      api('/api/quiz',{topic:t.title,material,count,difficulty:diff,exam:false}),
+      api('/api/quiz',{topic:t.title,material,count,difficulty:diff,exam:true}),
+    ]);
+    t.theory=th.theory; t.questions=quiz.questions; t.examQuestions=exam.questions; t.difficulty=diff;
+    save(); toast('Inhalte erstellt!'); nav.topic(m.id,t.id,'theory');
+  }catch(err){
+    C.innerHTML='<div class="screen"><div class="card"><div class="empty"><i class="ti ti-alert-triangle" style="color:var(--coral)"></i><div style="font-size:15px;font-weight:600;color:var(--text);margin-bottom:8px">Fehler beim Generieren</div><div style="margin-bottom:18px">'+esc(err.message)+'</div><button class="btn btn-ghost" onclick="nav.topic(\''+m.id+'\',\''+t.id+'\',\'material\')">Zurück</button></div></div></div>';
+  }
+}
+window.generateAll=generateAll;
+
+// ================= QUIZ / EXAM ENGINE =================
+let qSet=null, qi=0, correct=0, examMode=false, answered=false, answersLog=[];
+let timerInt=null, timeLeft=0;
+function stopTimer(){ if(timerInt){clearInterval(timerInt);timerInt=null;} }
+function startQuiz(exam){
+  const t=curTopic(); examMode=exam; qi=0; correct=0; answered=false; answersLog=[];
+  qSet=exam?(t.examQuestions&&t.examQuestions.length?t.examQuestions:t.questions):t.questions;
+  EX.innerHTML='<button class="btn btn-ghost btn-sm" onclick="nav.topic(\''+view.moduleId+'\',\''+view.topicId+'\',\''+(exam?'exam':'quiz')+'\')"><i class="ti ti-x"></i>Abbrechen</button>';
+  if(exam){ timeLeft=qSet.length*60; startTimer(); }
+  renderQ();
+}
+window.startQuiz=startQuiz;
+function startTimer(){ stopTimer(); timerInt=setInterval(()=>{ timeLeft--; const el=document.getElementById('examtimer'); if(el){const mm=Math.floor(timeLeft/60),ss=timeLeft%60; el.querySelector('span').textContent=mm+':'+String(ss).padStart(2,'0'); el.classList.toggle('warn',timeLeft<=30);} if(timeLeft<=0){ stopTimer(); toast('Zeit abgelaufen!',false); finishQuiz(); } },1000); }
+function renderQ(){
+  if(qi>=qSet.length) return finishQuiz();
+  answered=false; const q=qSet[qi];
+  const timer=examMode?`<div class="examtimer" id="examtimer"><i class="ti ti-clock"></i><span>${Math.floor(timeLeft/60)}:${String(timeLeft%60).padStart(2,'0')}</span></div>`:'';
+  C.innerHTML=`<div class="screen"><div class="qhead"><span class="tag ${examMode?'amber':''}"><i class="ti ti-${examMode?'file-certificate':'help-circle'}"></i>${examMode?'Prüfung · ':''}Frage ${qi+1}/${qSet.length}</span><div class="bar"><span style="width:${qi/qSet.length*100}%"></span></div>${timer}</div>
+    <div class="card"><div class="qq">${esc(q.q)}</div><div id="opts">${q.options.map((o,i)=>`<div class="opt" onclick="answer(${i})"><div class="ol">${String.fromCharCode(65+i)}</div><span>${esc(o)}</span></div>`).join('')}</div></div></div>`;
+}
+function answer(i){
+  if(answered) return; answered=true;
+  const q=qSet[qi]; const opts=document.querySelectorAll('#opts .opt'); opts.forEach(o=>o.classList.add('disabled'));
+  const right=i===q.answer; if(right) correct++;
+  answersLog.push({q:q.q,options:q.options,chosen:i,answer:q.answer,explanation:q.explanation,correct:right});
+  const card=document.querySelector('.screen .card');
+  const nb=document.createElement('button'); nb.className='btn btn-primary'; nb.style.marginTop='4px';
+  const last=qi+1>=qSet.length;
+  if(examMode){ opts[i].classList.add(right?'correct':'wrong'); nb.innerHTML=last?'<i class="ti ti-flag-check"></i>Abgeben & Auswerten':'<i class="ti ti-arrow-right"></i>Weiter'; }
+  else{ opts[q.answer].classList.add('correct'); if(!right) opts[i].classList.add('wrong'); const ex=document.createElement('div'); ex.className='expl'; ex.innerHTML='<i class="ti ti-bulb"></i><div>'+esc(q.explanation||'')+'</div>'; card.appendChild(ex); nb.innerHTML=last?'<i class="ti ti-flag-check"></i>Auswertung':'<i class="ti ti-arrow-right"></i>Nächste Frage'; }
+  nb.onclick=()=>{qi++;renderQ();}; card.appendChild(nb);
+}
+window.answer=answer;
+function finishQuiz(){
+  stopTimer(); const t=curTopic(); const total=qSet.length; const pct=Math.round(correct/total*100);
+  t.attempts=t.attempts||[]; t.attempts.push({correct,total,date:Date.now(),exam:examMode});
+  if(examMode){ t.examAttempts=t.examAttempts||[]; t.examAttempts.push({correct,total,date:Date.now(),log:answersLog}); }
+  save();
+  const grade=gradeFromPct(pct), pass=pct>=60;
+  let h='<div class="screen"><div class="card"><div class="result"><div class="rc" style="background:'+(pass?'#E9F8F2':'#FBEDE7')+';color:'+(pass?'var(--teal)':'var(--coral)')+'"><i class="ti '+(pass?'ti-trophy':'ti-rotate')+'"></i></div><h2>'+correct+'/'+total+' richtig · '+pct+'%</h2>';
+  if(examMode) h+='<div style="font-family:var(--font-d);font-size:20px;font-weight:600;color:'+(grade>=4?'var(--teal)':'var(--coral)')+';margin-bottom:6px">Note '+grade+'</div>';
+  h+='<p style="color:var(--muted);margin-bottom:22px">'+(pass?'Stark! Das sitzt.':'Noch Luft nach oben.')+'</p><div class="row" style="justify-content:center">';
+  h+='<button class="btn btn-primary" onclick="startQuiz('+examMode+')"><i class="ti ti-refresh"></i>Nochmal</button>';
+  if(examMode) h+='<button class="btn btn-ghost" onclick="showReview()"><i class="ti ti-list-search"></i>Fehleranalyse</button>';
+  h+='<button class="btn btn-ghost" onclick="nav.topic(\''+view.moduleId+'\',\''+view.topicId+'\',\'theory\')"><i class="ti ti-notes"></i>Theorie</button></div></div></div></div>';
+  C.innerHTML=h; EX.innerHTML=''; toast('Wissensstand aktualisiert: '+pct+'%');
+}
+function showReview(){
+  const t=curTopic(); const att=t.examAttempts&&t.examAttempts.length?t.examAttempts[t.examAttempts.length-1]:null;
+  if(!att){ toast('Keine Prüfungsdaten.',false); return; }
+  const wrong=att.log.filter(l=>!l.correct);
+  let h='<div class="screen"><div class="card"><h3><i class="ti ti-list-search"></i>Fehleranalyse — letzte Probeprüfung</h3><p style="color:var(--muted);font-size:14px;margin-bottom:18px">'+att.correct+'/'+att.total+' richtig · '+wrong.length+' Fehler. Hier siehst du genau, wo es gehakt hat.</p>';
+  if(!wrong.length) h+='<div class="empty"><i class="ti ti-circle-check" style="color:var(--teal)"></i><div style="font-weight:600;color:var(--text)">Alles richtig — keine Fehler!</div></div>';
+  att.log.forEach((l,idx)=>{ if(l.correct) return;
+    h+='<div class="review"><div class="rq">'+(idx+1)+'. '+esc(l.q)+'</div><div class="ra yours-wrong"><i class="ti ti-x"></i><div>Deine Antwort: '+esc(l.options[l.chosen])+'</div></div><div class="ra correct"><i class="ti ti-check"></i><div>Richtig: '+esc(l.options[l.answer])+'</div></div>'+(l.explanation?'<div class="rex"><strong>Erklärung:</strong> '+esc(l.explanation)+'</div>':'')+'</div>';
+  });
+  h+='<button class="btn btn-ghost" style="margin-top:8px" onclick="nav.topic(\''+view.moduleId+'\',\''+view.topicId+'\',\'exam\')"><i class="ti ti-arrow-left"></i>Zurück</button></div></div>';
+  C.innerHTML=h; EX.innerHTML='';
+}
+window.showReview=showReview;
+
+// ================= SETTINGS =================
+async function testBackend(){
+  const r=document.getElementById('s-test'); r.innerHTML='<span style="color:var(--muted)"><i class="ti ti-loader"></i> Teste…</span>';
+  try{ const res=await fetch('/api/health'); const d=await res.json(); r.innerHTML=d.ok?'<span style="color:var(--teal)"><i class="ti ti-circle-check"></i> '+esc(d.message)+'</span>':'<span style="color:var(--coral)"><i class="ti ti-alert-circle"></i> '+esc(d.error||'Fehler')+'</span>'; }
+  catch(e){ r.innerHTML='<span style="color:var(--coral)"><i class="ti ti-alert-circle"></i> Backend nicht erreichbar. Läuft die App über den Server?</span>'; }
+}
+window.testBackend=testBackend;
+function resetData(){ if(confirm('Wirklich ALLE Module und Resultate löschen?')){ state={modules:[]}; save(); nav.home(); toast('Daten zurückgesetzt.'); } }
+window.resetData=resetData;
+
+// ================= INIT =================
+if(window.pdfjsLib) pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+window.nav=nav;
+render();
+</script>
+</body>
+</html>
